@@ -57,6 +57,7 @@ public class ZoomableImageView extends ImageView {
 	private float[] finalTransformation = new float[9];
 	private PointF last = new PointF();
 	private float currentScale = 1f;
+    private PointF focus = new PointF();
 
 	private int viewWidth;
 	private int viewHeight;
@@ -156,6 +157,10 @@ public class ZoomableImageView extends ImageView {
 		afterScaleDrawableWidth = (float) viewWidth - 2 * marginX;
 		afterScaleDrawableHeight = (float) viewHeight - 2 * marginY;
 
+        if(Math.abs(currentScale - 1.0) > 1e-3) {
+            // We were scaled previously, so restore that scale and position
+            matrix.postScale(currentScale, currentScale, focus.x, focus.y);
+        }
 		setImageMatrix(matrix);
 	}
 
@@ -205,6 +210,7 @@ public class ZoomableImageView extends ImageView {
 	private void scale(float focusX, float focusY, float scaleFactor) {
 		float lastScale = currentScale;
 		float newScale = lastScale * scaleFactor;
+		focus.set(focusX, focusY);
 
 		// Calculate next scale with resetting to max or min if required
 		if (newScale > maxScale) {
@@ -313,8 +319,8 @@ public class ZoomableImageView extends ImageView {
 		@Override
 		public boolean onDoubleTap(MotionEvent e) {
 			if (isZoom()) {
-				resetImage();
 				currentScale = 1f;
+				resetImage();
 				state = State.INIT;
 
 			} else {
